@@ -146,13 +146,13 @@ $(BINDIR)/examples/memhog: @srcdir@/memhog.cpp $(MESOS_SCHED_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(MESOS_SCHED_LIB) $(LDFLAGS) $(LIBS)
 
 $(BINDIR)/examples/sleep: @srcdir@/sleep.cpp $(MESOS_SCHED_LIB)
-  $(CXX) $(CXXFLAGS) -o $@ $< $(MESOS_SCHED_LIB) $(LDFLAGS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(MESOS_SCHED_LIB) $(LDFLAGS) $(LIBS)
 
 $(BINDIR)/examples/memhog-executor: @srcdir@/memhog_executor.cpp $(MESOS_EXEC_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(MESOS_EXEC_LIB) $(LDFLAGS) $(LIBS)
 
 $(BINDIR)/examples/sleep-executor: @srcdir@/sleep_executor.cpp $(MESOS_EXEC_LIB)
-  $(CXX) $(CXXFLAGS) -o $@ $< $(MESOS_EXEC_LIB) $(LDFLAGS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(MESOS_EXEC_LIB) $(LDFLAGS) $(LIBS)
 
 $(BINDIR)/examples/scheduled-memhog: @srcdir@/scheduled_memhog.cpp $(MESOS_SCHED_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(MESOS_SCHED_LIB) $(LDFLAGS) $(LIBS)

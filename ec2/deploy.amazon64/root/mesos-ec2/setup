@@ -139,7 +139,7 @@ DOWNLOADED=0
 if [[ "$DOWNLOAD_METHOD" == "git" ]] ; then
   # change git's ssh command so it does not ask to accept a keys
   export GIT_SSH=/root/mesos-ec2/ssh-no-keychecking
-  REPOSITORY=git://github.com/mesos/mesos.git
+  REPOSITORY=git://github.com/pwendell/mesos.git
   echo "Checking out Mesos from $REPOSITORY"
   pushd /root > /dev/null 2>&1
   rm -rf mesos mesos.tgz
@@ -156,7 +156,7 @@ fi
 if [[ "$DOWNLOADED" == "1" ]] ; then
   echo "Building Mesos..."
   pushd /root/mesos > /dev/null 2>&1
-  ./configure.template.ubuntu-lucid-64
+  ./configure.template.amazon-linux-64
   make clean
   make
   popd > /dev/null 2>&1
