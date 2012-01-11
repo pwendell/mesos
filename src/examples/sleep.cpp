@@ -41,9 +41,9 @@ class MyScheduler : public Scheduler
 public:
   MyScheduler(int totalTasks_, double taskLenMean_, double taskLenStdev_) :
     totalTasks(totalTasks_), taskLenMean(taskLenMean_), 
-    taskLenStdev(taskLenStdev_) {
-    dist = new boost::normal_distribution<double>(1.0, 2.0);
-    boost::mt19937 rng;
+    taskLenStdev(taskLenStdev_), tasksLaunched(0), tasksFinished(0) {
+    dist = new boost::normal_distribution<double>(taskLenMean, taskLenStdev);
+    boost::mt19937 rng(time(0));
     gen = new boost::variate_generator <boost::mt19937&, boost::normal_distribution<double> > (rng, *dist);
   }
 
@@ -57,6 +57,8 @@ public:
   virtual void resourceOffers(SchedulerDriver* driver,
                               const vector<Offer>& offers)
   {
+    if (tasksLaunched == totalTasks) {exit(0);}
+    cout << "Received offer" << endl;
     vector<Offer>::const_iterator iterator = offers.begin();
     for (; iterator != offers.end(); ++iterator) {
       const Offer& offer = *iterator;
@@ -81,33 +83,35 @@ public:
       // Launch task (only one per offer).
       vector<TaskDescription> tasks;
       if ((tasksLaunched < totalTasks) && (cpus >= 1)) {
-        int taskId = tasksLaunched++;
+        for (int i = 0; i < cpus; i++) {
+          int taskId = tasksLaunched++;
 
-        cout << "Starting task " << taskId << " on "
-             << offer.hostname() << endl;
+          cout << "Starting task " << taskId << " on "
+               << offer.hostname() << endl;
 
-        TaskDescription task;
-        task.set_name("Task " + lexical_cast<string>(taskId));
-        task.mutable_task_id()->set_value(lexical_cast<string>(taskId));
-        task.mutable_slave_id()->MergeFrom(offer.slave_id());
+          TaskDescription task;
+          task.set_name("Task " + lexical_cast<string>(taskId));
+          task.mutable_task_id()->set_value(lexical_cast<string>(taskId));
+          task.mutable_slave_id()->MergeFrom(offer.slave_id());
 
-        Resource* resource;
+          Resource* resource;
 
-        resource = task.add_resources();
-        resource->set_name("cpus");
-        resource->set_type(Resource::SCALAR);
-        resource->mutable_scalar()->set_value(1);
+          resource = task.add_resources();
+          resource->set_name("cpus");
+          resource->set_type(Resource::SCALAR);
+          resource->mutable_scalar()->set_value(1);
 
-        resource = task.add_resources();
-        resource->set_name("mem");
-        resource->set_type(Resource::SCALAR);
-        resource->mutable_scalar()->set_value(32);
+          resource = task.add_resources();
+          resource->set_name("mem");
+          resource->set_type(Resource::SCALAR);
+          resource->mutable_scalar()->set_value(32);
 
-        ostringstream data;
-        data << (*gen)();
-        task.set_data(data.str());
+          ostringstream data;
+          data << (*gen)();
+          task.set_data(data.str());
 
-        tasks.push_back(task);
+          tasks.push_back(task);
+        }
       }
 
       driver->launchTasks(offer.id(), tasks);
@@ -130,8 +134,10 @@ public:
     if (status.state() == TASK_FINISHED)
       tasksFinished++;
 
-    if (tasksFinished == totalTasks)
+    if (tasksFinished == totalTasks) {
       driver->stop();
+      exit(0);
+    }
   }
 
   virtual void frameworkMessage(SchedulerDriver* driver,
@@ -157,23 +163,25 @@ private:
 
 int main(int argc, char** argv)
 {
-  if (argc != 5) {
+  if (argc != 6) {
 
     cerr << "Usage: " << argv[0]
-         << " <master> <tasks> <task_len_mean> <taks_len_stdev>" << endl;
+         << " <master> <framework_id> <tasks> <task_len_mean> <taks_len_stdev>" << endl;
     return -1;
   }
   // Find this executable's directory to locate executor
   char buf[4096];
   realpath(dirname(argv[0]), buf);
   string uri = string(buf) + "/sleep-executor";
-  MyScheduler sched(lexical_cast<int>(argv[2]),
-                    lexical_cast<double>(argv[3]),
-                    lexical_cast<double>(argv[4]));
+  MyScheduler sched(lexical_cast<int>(argv[3]),
+                    lexical_cast<double>(argv[4]),
+                    lexical_cast<double>(argv[5]));
   ExecutorInfo executor;
   executor.mutable_executor_id()->set_value("default");
   executor.set_uri(uri);
-  MesosSchedulerDriver driver(&sched, "Memory hog", executor, argv[1]);
+  string id = string(argv[2]);
+  string name = "Sleeper " + id;
+  MesosSchedulerDriver driver(&sched, name, executor, argv[1]);
   driver.run();
   return 0;
 }
