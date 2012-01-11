@@ -57,8 +57,6 @@ public:
   virtual void resourceOffers(SchedulerDriver* driver,
                               const vector<Offer>& offers)
   {
-    if (tasksLaunched == totalTasks) {exit(0);}
-    cout << "Received offer" << endl;
     vector<Offer>::const_iterator iterator = offers.begin();
     for (; iterator != offers.end(); ++iterator) {
       const Offer& offer = *iterator;
@@ -86,7 +84,7 @@ public:
         for (int i = 0; i < cpus; i++) {
           int taskId = tasksLaunched++;
 
-          cout << "Starting task " << taskId << " on "
+          cout << "STARTING: " << taskId << " on "
                << offer.hostname() << endl;
 
           TaskDescription task;
@@ -131,8 +129,10 @@ public:
       cout << "Task " << taskId
            << " lost. Not doing anything about it." << endl;
 
-    if (status.state() == TASK_FINISHED)
+    if (status.state() == TASK_FINISHED) {
+      cout << "FINISHED: " << taskId << endl;
       tasksFinished++;
+    }
 
     if (tasksFinished == totalTasks) {
       driver->stop();

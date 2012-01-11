@@ -26,6 +26,7 @@ def parse_args():
                     help="Show this help message and exit")
   parser.add_option("-s", "--slaves", type="int", default=1,
       help="Number of slaves to launch (default: 1)")
+  parser.add_option("-n", "--slaves-per-slave", type="int", default=1)
   parser.add_option("-w", "--wait", type="int", default=60,
       help="Number of seconds to wait for cluster nodes to start (default: 60)")
   parser.add_option("-k", "--key-pair",
@@ -384,6 +385,7 @@ def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes, zoo_nodes):
     "active_master": active_master,
     "slave_list": '\n'.join([i.public_dns_name for i in slave_nodes]),
     "zoo_list": zoo_list,
+    "slaves_per_slave": opts.slaves-per-slave
     "cluster_url": cluster_url,
     "hdfs_data_dirs": hdfs_data_dirs,
     "mapred_local_dirs": mapred_local_dirs

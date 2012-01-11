@@ -13,6 +13,7 @@ export PATH=$PATH:/root/scala-2.9.0.1/bin
 export HADOOP_HOME=/root/persistent-hdfs
 
 ulimit -n 8192
+NUM_SLAVES=`cat slaves-per-slave`
 
 PROGRAM=$1
 shift
@@ -34,4 +35,12 @@ if [ "$PROGRAM" == "mesos-master" ]; then
 fi
 
 cd $MESOS_HOME/bin
-nohup ./$PROGRAM --log_dir=/mnt/mesos-logs --work_dir=/mnt/mesos-work "$EXTRA_OPTS" "$@" </dev/null >/mnt/mesos-logs/$PROGRAM.out 2>&1 &
+
+if [ "$PROGRAM" == "mesos-slave" ]; then
+  for i in $(eval echo {1..$NUM_SLAVES})
+  do
+    nohup ./$PROGRAM --log_dir=/mnt/mesos-logs -p $((1300 + i)) -w $((12300 + i)) --work_dir=/mnt/mesos-work "$EXTRA_OPTS" "$@" </dev/null >/mnt/mesos-logs/$PROGRAM.out 2>&1 &
+  done
+else
+  nohup ./$PROGRAM --log_dir=/mnt/mesos-logs --work_dir=/mnt/mesos-work "$EXTRA_OPTS" "$@" </dev/null >/mnt/mesos-logs/$PROGRAM.out 2>&1 &
+fi
