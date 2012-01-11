@@ -13,6 +13,7 @@ export PATH=$PATH:/root/scala-2.9.0.1/bin
 export HADOOP_HOME=/root/persistent-hdfs
 
 ulimit -n 8192
+cd $MESOS_HOME/../mesos-ec2/
 NUM_SLAVES=`cat slaves-per-slave`
 
 PROGRAM=$1
