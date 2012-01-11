@@ -385,7 +385,7 @@ def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes, zoo_nodes):
     "active_master": active_master,
     "slave_list": '\n'.join([i.public_dns_name for i in slave_nodes]),
     "zoo_list": zoo_list,
-    "slaves_per_slave": opts.slaves-per-slave
+    "slaves_per_slave": opts.slaves-per-slave,
     "cluster_url": cluster_url,
     "hdfs_data_dirs": hdfs_data_dirs,
     "mapred_local_dirs": mapred_local_dirs
