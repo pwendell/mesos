@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
-
+#include <fstream>
 #include <mesos/executor.hpp>
 
 using namespace mesos;
@@ -36,11 +36,12 @@ struct ThreadArg
   TaskDescription task;
   int threadId;
   double usec;
+  fstream *filestr;
 
   ThreadArg(SleepExecutor* executor_, TaskDescription task_, int threadId_,
-            double usec_)
+            double usec_, fstream *filestr_)
     : executor(executor_), task(task_), threadId(threadId_),
-      usec(usec_) {}
+      usec(usec_), filestr(filestr_) {}
 };
 
 void* runTask(void* arg);
@@ -49,24 +50,25 @@ class SleepExecutor : public Executor
 {
 public:
   ExecutorDriver* driver;
-
+  fstream filestr;
   virtual ~SleepExecutor() {}
 
   virtual void init(ExecutorDriver* driver, const ExecutorArgs &args) {
     this->driver = driver;
+    filestr.open("/tmp/sparrow.txt", fstream::app);
   }
 
   virtual void launchTask(ExecutorDriver*, const TaskDescription& task) {
     double duration;
     istringstream in(task.data());
 
-    cout << "Task: " << task.task_id().value() <<  "Sleep: " << duration << endl;
+    filestr << "Task: " << task.task_id().value() <<  "Sleep: " << duration << endl;
     in >> duration;
 
     if (duration < 0.0) { duration = 0.0; }
     double usec = duration * 1000.0;
    
-    ThreadArg* arg = new ThreadArg(this, task, 0, usec); 
+    ThreadArg* arg = new ThreadArg(this, task, 0, usec, &filestr); 
     pthread_t thread;
     pthread_create(&thread, 0, runTask, arg);
     pthread_detach(thread);
@@ -98,6 +100,8 @@ void* runTask(void* threadArg) {
   status.mutable_task_id()->MergeFrom(arg->task.task_id());
   status.set_state(TASK_FINISHED);
   arg->executor->driver->sendStatusUpdate(status);
+  *(arg->filestr) << time(0);
+  arg->filestr->flush();
 
 }
 

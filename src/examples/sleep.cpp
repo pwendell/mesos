@@ -81,35 +81,33 @@ public:
       // Launch task (only one per offer).
       vector<TaskDescription> tasks;
       if ((tasksLaunched < totalTasks) && (cpus >= 1)) {
-        for (int i = 0; i < cpus; i++) {
-          int taskId = tasksLaunched++;
+        int taskId = tasksLaunched++;
 
-          cout << "STARTING: " << taskId << " on "
+        cout << "STARTING: " << taskId << " on "
                << offer.hostname() << endl;
 
-          TaskDescription task;
-          task.set_name("Task " + lexical_cast<string>(taskId));
-          task.mutable_task_id()->set_value(lexical_cast<string>(taskId));
-          task.mutable_slave_id()->MergeFrom(offer.slave_id());
+        TaskDescription task;
+        task.set_name("Task " + lexical_cast<string>(taskId));
+        task.mutable_task_id()->set_value(lexical_cast<string>(taskId));
+        task.mutable_slave_id()->MergeFrom(offer.slave_id());
 
-          Resource* resource;
+        Resource* resource;
 
-          resource = task.add_resources();
-          resource->set_name("cpus");
-          resource->set_type(Resource::SCALAR);
-          resource->mutable_scalar()->set_value(1);
+        resource = task.add_resources();
+        resource->set_name("cpus");
+        resource->set_type(Resource::SCALAR);
+        resource->mutable_scalar()->set_value(1);
 
-          resource = task.add_resources();
-          resource->set_name("mem");
-          resource->set_type(Resource::SCALAR);
-          resource->mutable_scalar()->set_value(32);
+        resource = task.add_resources();
+        resource->set_name("mem");
+        resource->set_type(Resource::SCALAR);
+        resource->mutable_scalar()->set_value(32);
 
-          ostringstream data;
-          data << (*gen)();
-          task.set_data(data.str());
+        ostringstream data;
+        data << (*gen)();
+        task.set_data(data.str());
 
-          tasks.push_back(task);
-        }
+        tasks.push_back(task);
       }
 
       driver->launchTasks(offer.id(), tasks);
