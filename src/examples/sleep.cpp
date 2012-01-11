@@ -17,7 +17,7 @@
  */
 
 #include <libgen.h>
-
+#include <sys/time.h>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -84,7 +84,7 @@ public:
         int taskId = tasksLaunched++;
 
         cout << "STARTING: " << taskId << " on "
-               << offer.hostname() << endl;
+               << offer.hostname() << " " << offer.slave_id().value() << endl;
 
         TaskDescription task;
         task.set_name("Task " + lexical_cast<string>(taskId));
@@ -108,6 +108,9 @@ public:
         task.set_data(data.str());
 
         tasks.push_back(task);
+        timeval now;
+        gettimeofday(&now, NULL);
+        cout << "Launced tasks: " << (now.tv_sec * 1000) + (now.tv_usec / 1000) << endl;
       }
 
       driver->launchTasks(offer.id(), tasks);
@@ -129,6 +132,9 @@ public:
 
     if (status.state() == TASK_FINISHED) {
       cout << "FINISHED: " << taskId << endl;
+      timeval now;
+      gettimeofday(&now, NULL);
+      cout << (now.tv_sec * 1000) + (now.tv_usec / 1000) << endl;
       tasksFinished++;
     }
 
@@ -177,6 +183,9 @@ int main(int argc, char** argv)
   ExecutorInfo executor;
   executor.mutable_executor_id()->set_value("default");
   executor.set_uri(uri);
+  timeval now;
+  gettimeofday(&now, NULL);
+  cout << "STARTED: " << (now.tv_sec * 1000) + (now.tv_usec / 1000) << endl;
   string id = string(argv[2]);
   string name = "Sleeper " + id;
   MesosSchedulerDriver driver(&sched, name, executor, argv[1]);

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-#include <time.h>
+#include <sys/time.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -62,7 +62,7 @@ public:
     double duration;
     istringstream in(task.data());
 
-    filestr << "Task: " << task.task_id().value() <<  "Sleep: " << duration << endl;
+    cout << "Task: " << task.task_id().value() <<  "Sleep: " << duration << endl;
     in >> duration;
 
     if (duration < 0.0) { duration = 0.0; }
@@ -94,14 +94,19 @@ public:
 void* runTask(void* threadArg) {
   ThreadArg* arg = (ThreadArg*) threadArg;
   cout << "Task: " << arg->task.task_id().value() <<  "Sleep: " << arg->usec << endl;
-  
+  struct timeval start, end;
+  gettimeofday(&start, NULL);
   usleep(static_cast<int>(arg->usec));
   TaskStatus status;
   status.mutable_task_id()->MergeFrom(arg->task.task_id());
   status.set_state(TASK_FINISHED);
   arg->executor->driver->sendStatusUpdate(status);
-  *(arg->filestr) << time(0);
-  arg->filestr->flush();
+  gettimeofday(&end, NULL);
+  long sec = end.tv_sec - start.tv_sec;
+  long usec = end.tv_usec - start.tv_usec;
+  cout << "START: " << (start.tv_sec * 1000) + (start.tv_usec / 1000) << endl;
+  cout << "Diff: " << (sec * 1000)  + (usec / 1000) << " now " << (end.tv_sec * 1000) + (end.tv_usec / 1000) << endl;
+  fflush(stdout);
 
 }
 
